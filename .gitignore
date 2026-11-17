@@ -30,3 +30,11 @@ Thumbs.db
 .idea/
 .claude/
 */.claude/
+
+# PRD Documents
+prd.md
+PRD.md
+*prd*.md
+*PRD*.md
+docs/PRD.md
+docs/prd.md

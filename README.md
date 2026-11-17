@@ -54,7 +54,6 @@ e-booking-app/
 │   └── .env                      # Private backend environment secrets
 │
 ├── docs/
-│   ├── PRD.md                    # Complete Product Requirements Document
 │   └── API_DOCUMENTATION.md      # Full REST API specification & payloads
 │
 ├── README.md                     # Comprehensive setup and run guide
