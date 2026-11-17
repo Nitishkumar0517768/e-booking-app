@@ -5,7 +5,13 @@ import Constants from 'expo-constants';
 
 // Auto-detect the host IP from Expo configuration or environment
 export const getBaseURL = () => {
-  // 1. Auto-detect dynamic host IP from Expo development server (seamless for mobile Expo Go)
+  // 1. Explicit production or custom environment variable URL
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.trim();
+  }
+
+  // 2. Auto-detect dynamic host IP from Expo development server (seamless for mobile Expo Go on local Wi-Fi)
   const hostUri =
     Constants.expoConfig?.hostUri ||
     (Constants as any).manifest2?.extra?.expoClient?.hostUri;
@@ -15,12 +21,6 @@ export const getBaseURL = () => {
     if (ip && ip !== 'localhost') {
       return `http://${ip}:5000/api`;
     }
-  }
-
-  // 2. Check EXPO_PUBLIC_API_URL
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl && (Platform.OS === 'web' || !envUrl.includes('localhost'))) {
-    return envUrl;
   }
 
   // 3. Android emulator fallback
