@@ -195,7 +195,7 @@ export const AdminHistoryScreen: React.FC<AdminHistoryScreenProps> = ({
       <View style={styles.header}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Booking Operations & History</Text>
-          <Text style={styles.subtitle}>Track reservations, issue equipment, and verify returns</Text>
+          {/* <Text style={styles.subtitle}>Track reservations, issue equipment, and verify returns</Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}

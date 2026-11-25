@@ -106,16 +106,16 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
           <View
             style={[
               styles.qtyBadge,
-              (item.availableQuantity ?? item.totalQuantity) === 0 ? { backgroundColor: '#fee2e2' } : undefined,
+              Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0 ? { backgroundColor: '#fee2e2' } : undefined,
             ]}>
             <Text
               style={[
                 styles.qtyBadgeText,
-                (item.availableQuantity ?? item.totalQuantity) === 0 ? { color: Colors.semanticDown } : undefined,
+                Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0 ? { color: Colors.semanticDown } : undefined,
               ]}>
-              {(item.availableQuantity ?? item.totalQuantity) === 0
+              {Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0
                 ? 'Out of Stock'
-                : `${item.availableQuantity ?? item.totalQuantity} of ${item.totalQuantity} available`}
+                : `${Math.min(Math.max(0, item.availableQuantity ?? item.totalQuantity), item.totalQuantity)} of ${item.totalQuantity} available`}
             </Text>
           </View>
         </View>

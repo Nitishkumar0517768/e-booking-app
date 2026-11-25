@@ -185,7 +185,7 @@ export const ResourceDetailScreen: React.FC<ResourceDetailScreenProps> = ({
           <Text style={styles.bottomPriceLabel}>Available Inventory</Text>
           <Text style={styles.bottomPriceValue}>
             {isBookable
-              ? `${details.availableQuantity ?? details.totalQuantity} of ${details.totalQuantity} Units Free`
+              ? `${Math.min(Math.max(0, details.availableQuantity ?? details.totalQuantity), details.totalQuantity)} of ${details.totalQuantity} Units Free`
               : 'Unavailable'}
           </Text>
         </View>

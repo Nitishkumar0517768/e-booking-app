@@ -79,14 +79,25 @@ const checkAvailability = async (req, res) => {
 
 const getResources = async (req, res) => {
   try {
-    const { category, search, status, page = 1, limit = 20 } = req.query;
-    const query = { isArchived: false };
+    const { category, search, status, page = 1, limit = 50 } = req.query;
+    const query = {};
 
-    // Role-based visibility: default students see only available items or non-inactive
-    if (!req.user || req.user.role !== 'admin') {
+    const isAdmin = req.user && req.user.role === 'admin';
+
+    if (!isAdmin) {
+      // Students and unauthenticated visitors NEVER see archived items or inactive items
+      query.isArchived = false;
       query.operationalStatus = { $ne: 'inactive' };
-    } else if (status) {
-      query.operationalStatus = status;
+    } else {
+      // Admin query logic:
+      if (status === 'archived') {
+        query.isArchived = true;
+      } else if (status === 'available' || status === 'maintenance' || status === 'inactive') {
+        query.isArchived = false;
+        query.operationalStatus = status;
+      } else {
+        // 'All' or no status: admin sees all items in catalog (active & archived)
+      }
     }
 
     if (category && category !== 'All') {
@@ -106,15 +117,19 @@ const getResources = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Resource.countDocuments(query);
     const resources = await Resource.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ isArchived: 1, createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
 
     const enrichedResources = resources.map((r) => {
       const doc = r.toObject ? r.toObject() : r;
-      if (doc.availableQuantity === undefined || doc.availableQuantity === null) {
-        doc.availableQuantity = doc.totalQuantity;
-      }
+      const totalQty = doc.totalQuantity || 0;
+      let availQty =
+        doc.availableQuantity !== undefined && doc.availableQuantity !== null
+          ? doc.availableQuantity
+          : totalQty;
+      // Always clamp availableQuantity so it never exceeds totalQuantity
+      doc.availableQuantity = Math.min(Math.max(0, availQty), totalQty);
       return doc;
     });
 
@@ -140,7 +155,13 @@ const getResourceById = async (req, res) => {
       return errorResponse(res, 400, 'Invalid resource ID');
     }
 
-    const resource = await Resource.findOne({ _id: id, isArchived: false });
+    const isAdmin = req.user && req.user.role === 'admin';
+    const filter = { _id: id };
+    if (!isAdmin) {
+      filter.isArchived = false;
+    }
+
+    const resource = await Resource.findOne(filter);
     if (!resource) {
       return errorResponse(res, 404, 'Resource not found');
     }
@@ -155,7 +176,10 @@ const getResourceById = async (req, res) => {
     });
 
     const currentReserved = activeBookings.reduce((sum, b) => sum + b.quantity, 0);
-    const currentAvailable = Math.max(0, resource.totalQuantity - currentReserved);
+    const currentAvailable = Math.min(
+      Math.max(0, resource.totalQuantity - currentReserved),
+      resource.totalQuantity
+    );
 
     return successResponse(res, 200, 'Resource details retrieved', {
       resource,
@@ -171,6 +195,11 @@ const getResourceById = async (req, res) => {
 const createResource = async (req, res) => {
   try {
     const resourceData = req.body;
+    if (resourceData.totalQuantity) {
+      resourceData.totalQuantity = parseInt(resourceData.totalQuantity, 10);
+    }
+    resourceData.availableQuantity = resourceData.totalQuantity || 1;
+
     const newResource = await Resource.create(resourceData);
 
     return successResponse(res, 201, 'Resource created successfully', {
@@ -189,18 +218,33 @@ const updateResource = async (req, res) => {
       return errorResponse(res, 400, 'Invalid resource ID');
     }
 
-    const updatedResource = await Resource.findOneAndUpdate(
-      { _id: id, isArchived: false },
-      { $set: req.body },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedResource) {
+    const resource = await Resource.findById(id);
+    if (!resource) {
       return errorResponse(res, 404, 'Resource not found');
     }
 
+    // Apply updates
+    Object.assign(resource, req.body);
+
+    if (req.body.totalQuantity !== undefined) {
+      resource.totalQuantity = parseInt(req.body.totalQuantity, 10);
+    }
+
+    // Recalculate and synchronize availableQuantity based on currently active bookings
+    const activeBookings = await Booking.find({
+      resourceId: id,
+      status: { $in: ['Approved', 'Issued'] },
+    });
+    const bookedQuantity = activeBookings.reduce((sum, b) => sum + (b.quantity || 1), 0);
+    resource.availableQuantity = Math.min(
+      Math.max(0, resource.totalQuantity - bookedQuantity),
+      resource.totalQuantity
+    );
+
+    await resource.save();
+
     return successResponse(res, 200, 'Resource updated successfully', {
-      resource: updatedResource,
+      resource,
     });
   } catch (error) {
     console.error('[Update Resource Error]:', error);
@@ -217,8 +261,8 @@ const updateResourceStatus = async (req, res) => {
       return errorResponse(res, 400, 'Invalid resource ID');
     }
 
-    const updatedResource = await Resource.findOneAndUpdate(
-      { _id: id, isArchived: false },
+    const updatedResource = await Resource.findByIdAndUpdate(
+      id,
       { $set: { operationalStatus } },
       { new: true }
     );
@@ -262,6 +306,43 @@ const archiveResource = async (req, res) => {
   }
 };
 
+const restoreResource = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return errorResponse(res, 400, 'Invalid resource ID');
+    }
+
+    const resource = await Resource.findById(id);
+    if (!resource) {
+      return errorResponse(res, 404, 'Resource not found');
+    }
+
+    resource.isArchived = false;
+    resource.operationalStatus = 'available';
+
+    // Recalculate available units based on active bookings
+    const activeBookings = await Booking.find({
+      resourceId: id,
+      status: { $in: ['Approved', 'Issued'] },
+    });
+    const bookedQuantity = activeBookings.reduce((sum, b) => sum + (b.quantity || 1), 0);
+    resource.availableQuantity = Math.min(
+      Math.max(0, resource.totalQuantity - bookedQuantity),
+      resource.totalQuantity
+    );
+
+    await resource.save();
+
+    return successResponse(res, 200, 'Resource restored successfully', {
+      resource,
+    });
+  } catch (error) {
+    console.error('[Restore Resource Error]:', error);
+    return errorResponse(res, 500, error.message || 'Failed to restore resource');
+  }
+};
+
 module.exports = {
   getResources,
   getResourceById,
@@ -270,5 +351,6 @@ module.exports = {
   updateResource,
   updateResourceStatus,
   archiveResource,
+  restoreResource,
   uploadImage,
 };

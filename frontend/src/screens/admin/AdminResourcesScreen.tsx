@@ -22,6 +22,8 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 import { useAuth } from '../../context/AuthContext';
 
+const STATUS_TABS = ['All', 'Available', 'Maintenance', 'Archived'];
+
 interface AdminResourcesScreenProps {
   onAddNewResource: () => void;
   onEditResource: (resource: Resource) => void;
@@ -35,19 +37,21 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
 }) => {
   const { user } = useAuth();
   const [resources, setResources] = useState<Resource[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchResources();
-  }, [search]);
+  }, [search, selectedStatus]);
 
   const fetchResources = async () => {
     try {
       setLoading(true);
       const res = await resourceService.getResources({
         search: search.trim() || undefined,
+        status: selectedStatus === 'All' ? undefined : selectedStatus.toLowerCase(),
       });
       setResources(res.data.resources || []);
     } catch (e) {
@@ -97,7 +101,7 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
   const handleArchive = (resource: Resource) => {
     Alert.alert(
       'Archive Resource',
-      `Are you sure you want to archive "${resource.name}"? It will no longer be available for student booking requests.`,
+      `Are you sure you want to archive "${resource.name}"? It will be hidden from student booking requests, but will remain accessible under the "Archived" tab in Admin.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -107,6 +111,7 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
             try {
               await resourceService.archiveResource(resource._id);
               fetchResources();
+              Alert.alert('Archived', `"${resource.name}" has been moved to Archived inventory.`);
             } catch (err: any) {
               Alert.alert('Archive Error', err.message);
             }
@@ -116,72 +121,127 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
     );
   };
 
-  const renderItem = ({ item }: { item: Resource }) => (
-    <Card style={styles.card}>
-      <View style={styles.cardHeaderRow}>
-        <Image source={{ uri: item.imageUrl }} style={styles.thumb} resizeMode="cover" />
-        <View style={styles.headerInfo}>
-          <View style={styles.badgeRow}>
-            <Text style={styles.catLabel}>{item.category.toUpperCase()}</Text>
-            <Badge status={item.operationalStatus} size="sm" />
+  const handleRestore = (resource: Resource) => {
+    Alert.alert(
+      'Restore Resource',
+      `Restore "${resource.name}" back to active inventory so students can request bookings?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restore',
+          onPress: async () => {
+            try {
+              await resourceService.restoreResource(resource._id);
+              fetchResources();
+              Alert.alert('Restored', `"${resource.name}" is now restored and available for bookings.`);
+            } catch (err: any) {
+              Alert.alert('Restore Error', err.message);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderItem = ({ item }: { item: Resource }) => {
+    const total = item.totalQuantity || 0;
+    const rawAvail =
+      item.availableQuantity !== undefined && item.availableQuantity !== null
+        ? item.availableQuantity
+        : total;
+    // Guaranteed non-negative and never exceeds totalQuantity
+    const available = Math.min(Math.max(0, rawAvail), total);
+
+    return (
+      <Card style={[styles.card, item.isArchived ? styles.cardArchived : undefined]}>
+        <View style={styles.cardHeaderRow}>
+          <Image source={{ uri: item.imageUrl }} style={styles.thumb} resizeMode="cover" />
+          <View style={styles.headerInfo}>
+            <View style={styles.badgeRow}>
+              <Text style={styles.catLabel}>{item.category.toUpperCase()}</Text>
+              <Badge status={item.isArchived ? 'Archived' : item.operationalStatus} size="sm" />
+            </View>
+            <Text style={styles.nameText} numberOfLines={2}>
+              {item.name}
+            </Text>
+            <Text style={styles.locationText}>
+              {item.location} • {item.department}
+            </Text>
           </View>
-          <Text style={styles.nameText} numberOfLines={2}>
-            {item.name}
-          </Text>
-          <Text style={styles.locationText}>
-            {item.location} • {item.department}
-          </Text>
         </View>
-      </View>
 
-      <View style={styles.inventoryRow}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={styles.invText}>Units:</Text>
-          <Text
-            style={{
-              fontWeight: '700',
-              color: (item.availableQuantity ?? item.totalQuantity) > 0 ? Colors.semanticUp : Colors.semanticDown,
-              fontSize: 13,
-            }}>
-            {item.availableQuantity ?? item.totalQuantity} / {item.totalQuantity} Available
-          </Text>
+        <View style={styles.inventoryRow}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.invText}>Units:</Text>
+            <Text
+              style={{
+                fontWeight: '700',
+                color: available > 0 ? Colors.semanticUp : Colors.semanticDown,
+                fontSize: 13,
+              }}>
+              {available} / {total} Available
+            </Text>
+          </View>
+          <Text style={styles.invText}>Condition: {item.condition}</Text>
         </View>
-        <Text style={styles.invText}>Condition: {item.condition}</Text>
-      </View>
 
-      <View style={styles.cardActions}>
-        <Button
-          title="Status"
-          onPress={() => handleToggleStatus(item)}
-          variant="outline"
-          size="sm"
-          style={styles.actionBtn}
-        />
-        <Button
-          title="Edit"
-          onPress={() => onEditResource(item)}
-          variant="secondary"
-          size="sm"
-          style={styles.actionBtn}
-        />
-        <Button
-          title="Archive"
-          onPress={() => handleArchive(item)}
-          variant="outline"
-          size="sm"
-          textStyle={{ color: Colors.semanticDown }}
-          style={styles.actionBtn}
-        />
-      </View>
-    </Card>
-  );
+        <View style={styles.cardActions}>
+          {item.isArchived ? (
+            <>
+              <Button
+                title="Restore / Unarchive"
+                onPress={() => handleRestore(item)}
+                variant="primary"
+                size="sm"
+                style={styles.actionBtn}
+              />
+              <Button
+                title="Edit"
+                onPress={() => onEditResource(item)}
+                variant="secondary"
+                size="sm"
+                style={styles.actionBtn}
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                title="Status"
+                onPress={() => handleToggleStatus(item)}
+                variant="outline"
+                size="sm"
+                style={styles.actionBtn}
+              />
+              <Button
+                title="Edit"
+                onPress={() => onEditResource(item)}
+                variant="secondary"
+                size="sm"
+                style={styles.actionBtn}
+              />
+              <Button
+                title="Archive"
+                onPress={() => handleArchive(item)}
+                variant="outline"
+                size="sm"
+                textStyle={{ color: Colors.semanticDown }}
+                style={styles.actionBtn}
+              />
+            </>
+          )}
+        </View>
+      </Card>
+    );
+  };
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.topBar}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Resource Inventory</Text>
-          <Text style={styles.subtitle} numberOfLines={1}>Manage campus equipment and room facilities</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>
+            Manage campus equipment and room facilities
+          </Text>
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}
@@ -206,6 +266,30 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
         )}
       </View>
 
+      {/* Status Filter Tabs (All, Available, Maintenance, Archived) */}
+      <View style={styles.tabsContainer}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={STATUS_TABS}
+          keyExtractor={(item) => item}
+          contentContainerStyle={styles.tabsList}
+          renderItem={({ item }) => {
+            const isSelected = selectedStatus === item;
+            return (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setSelectedStatus(item)}
+                style={[styles.tab, isSelected ? styles.tabSelected : undefined]}>
+                <Text style={[styles.tabText, isSelected ? styles.tabTextSelected : undefined]}>
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
+
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -220,10 +304,14 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
           ListEmptyComponent={
             <EmptyState
               icon="cube-outline"
-              title="No resources found"
-              description="No resources match your search criteria."
-              actionTitle="Add New Resource"
-              onAction={onAddNewResource}
+              title={selectedStatus === 'Archived' ? 'No Archived Resources' : 'No Resources Found'}
+              description={
+                selectedStatus === 'Archived'
+                  ? 'No equipment or resources are currently archived.'
+                  : 'No resources match your search criteria.'
+              }
+              actionTitle={selectedStatus === 'Archived' ? undefined : 'Add New Resource'}
+              onAction={selectedStatus === 'Archived' ? undefined : onAddNewResource}
             />
           }
         />
@@ -263,7 +351,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.hairline,
     borderRadius: Radius.md,
     marginHorizontal: Spacing.base,
-    marginVertical: Spacing.sm,
+    marginTop: Spacing.sm,
     paddingHorizontal: Spacing.sm,
     height: 44,
   },
@@ -272,6 +360,33 @@ const styles = StyleSheet.create({
     ...Typography.bodyMd,
     color: Colors.ink,
     marginLeft: Spacing.xs,
+  },
+  tabsContainer: {
+    marginVertical: Spacing.sm,
+  },
+  tabsList: {
+    paddingHorizontal: Spacing.base,
+    gap: Spacing.xs,
+  },
+  tab: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.surfaceSoft,
+    borderWidth: 1,
+    borderColor: Colors.hairlineSoft,
+  },
+  tabSelected: {
+    backgroundColor: Colors.ink,
+    borderColor: Colors.ink,
+  },
+  tabText: {
+    ...Typography.caption,
+    fontWeight: '600',
+    color: Colors.body,
+  },
+  tabTextSelected: {
+    color: Colors.canvas,
   },
   loadingContainer: {
     flex: 1,
@@ -284,6 +399,10 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: Spacing.sm,
+  },
+  cardArchived: {
+    backgroundColor: '#fffdf5',
+    borderColor: '#fde68a',
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -341,4 +460,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-

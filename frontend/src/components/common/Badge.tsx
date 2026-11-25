@@ -32,6 +32,9 @@ export const Badge: React.FC<BadgeProps> = ({ status, size = 'md', style }) => {
         return { bg: '#fffbeb', text: '#b45309', border: '#fef3c7' };
       case 'inactive':
         return { bg: '#f8fafc', text: '#64748b', border: '#e2e8f0' };
+      case 'archived':
+      case 'Archived':
+        return { bg: '#fef3c7', text: '#92400e', border: '#fde68a' };
       default:
         return { bg: '#f3f4f6', text: '#374151', border: '#e5e7eb' };
     }

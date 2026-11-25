@@ -219,11 +219,11 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                     <Text
                       style={[
                         styles.quantityText,
-                        (item.availableQuantity ?? item.totalQuantity) === 0 ? { color: Colors.semanticDown } : undefined,
+                        Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0 ? { color: Colors.semanticDown } : undefined,
                       ]}>
-                      {(item.availableQuantity ?? item.totalQuantity) === 0
+                      {Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0
                         ? 'Reserved'
-                        : `${item.availableQuantity ?? item.totalQuantity} / ${item.totalQuantity} left`}
+                        : `${Math.min(Math.max(0, item.availableQuantity ?? item.totalQuantity), item.totalQuantity)} / ${item.totalQuantity} left`}
                     </Text>
                   </View>
                 </View>

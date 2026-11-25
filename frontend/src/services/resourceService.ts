@@ -89,6 +89,13 @@ export const resourceService = {
     };
   },
 
+  async restoreResource(id: string) {
+    return (await api.patch(`/resources/${id}/restore`)) as {
+      success: boolean;
+      data: { resource: Resource };
+    };
+  },
+
   async uploadImage(base64Image: string) {
     return (await api.post('/resources/upload-image', { image: base64Image })) as {
       success: boolean;

@@ -28,6 +28,30 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+/**
+ * Optional authentication: attaches req.user if a valid token is provided,
+ * but allows the request to continue if no token is present.
+ */
+const optionalAuth = async (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'ebooking_super_secure_jwt_secret_key_2026_x!');
+    const user = await User.findById(decoded.userId);
+    if (user && user.isActive) {
+      req.user = user;
+    }
+  } catch (_) {
+    // Continue without req.user
+  }
+  next();
+};
+
 const requireRole = (role) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -44,6 +68,6 @@ const requireRole = (role) => {
 
 module.exports = {
   authenticateToken,
+  optionalAuth,
   requireRole,
 };
-

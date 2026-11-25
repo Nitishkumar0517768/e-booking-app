@@ -89,6 +89,17 @@ const resourceSchema = new mongoose.Schema(
 
 resourceSchema.index({ name: 'text', description: 'text', department: 'text' });
 
+resourceSchema.pre('save', function (next) {
+  if (this.totalQuantity !== undefined && this.totalQuantity !== null) {
+    if (this.availableQuantity === undefined || this.availableQuantity === null) {
+      this.availableQuantity = this.totalQuantity;
+    } else {
+      this.availableQuantity = Math.min(Math.max(0, this.availableQuantity), this.totalQuantity);
+    }
+  }
+  next();
+});
+
 const Resource = mongoose.model('Resource', resourceSchema);
 module.exports = Resource;
 
