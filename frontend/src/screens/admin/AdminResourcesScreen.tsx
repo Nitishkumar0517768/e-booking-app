@@ -239,9 +239,9 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
       <View style={styles.topBar}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Resource Inventory</Text>
-          <Text style={styles.subtitle} numberOfLines={1}>
+          {/* <Text style={styles.subtitle} numberOfLines={1}>
             Manage campus equipment and room facilities
-          </Text>
+          </Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}

@@ -124,12 +124,12 @@ export const RootNavigator: React.FC = () => {
               onPress={() => setAdminTab('dashboard')}
               style={styles.tabItem}>
               <Ionicons
-                name={adminTab === 'dashboard' ? 'grid' : 'grid-outline'}
+                name={adminTab === 'dashboard' ? 'home' : 'home-outline'}
                 size={22}
                 color={adminTab === 'dashboard' ? Colors.primary : Colors.body}
               />
               <Text style={[styles.tabLabel, adminTab === 'dashboard' ? styles.tabLabelActive : undefined]}>
-                Dashboard
+                Home
               </Text>
             </TouchableOpacity>
 
@@ -138,7 +138,7 @@ export const RootNavigator: React.FC = () => {
               onPress={() => setAdminTab('resources')}
               style={styles.tabItem}>
               <Ionicons
-                name={adminTab === 'resources' ? 'layers' : 'layers-outline'}
+                name={adminTab === 'resources' ? 'cube' : 'cube-outline'}
                 size={22}
                 color={adminTab === 'resources' ? Colors.primary : Colors.body}
               />

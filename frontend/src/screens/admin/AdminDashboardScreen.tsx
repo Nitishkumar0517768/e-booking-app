@@ -67,7 +67,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.topBar}>
         <View>
-          <Text style={styles.greetingText}>Administrator Console</Text>
+          {/* <Text style={styles.greetingText}>Administrator Console</Text> */}
           <Text style={styles.adminNameText}>{user?.name || 'Admin'}</Text>
         </View>
         <ProfileAvatar
@@ -112,7 +112,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             {/* Total Resources */}
             <Card onPress={onNavigateToResources} style={styles.statCard}>
               <View style={styles.statIconRow}>
-                <Ionicons name="layers-outline" size={20} color={Colors.ink} />
+                <Ionicons name="cube-outline" size={20} color={Colors.ink} />
                 <Text style={styles.statLabel}>Resources</Text>
               </View>
               <Text style={styles.statValue}>{stats?.totalResources || 0}</Text>
@@ -155,8 +155,8 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
         )}
 
         {/* Quick Management Actions */}
-        <Text style={styles.sectionTitle}>Quick Management Actions</Text>
-        <View style={styles.actionButtonsCol}>
+        {/* <Text style={styles.sectionTitle}>Quick Management Actions</Text> */}
+        {/* <View style={styles.actionButtonsCol}>
           <Button
             title="Review Pending Requests"
             onPress={onNavigateToRequests}
@@ -172,7 +172,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
             size="md"
             icon={<Ionicons name="library-outline" size={18} color={Colors.ink} />}
           />
-        </View>
+        </View> */}
 
         {/* Recent Activity Feed */}
         <View style={styles.recentSectionHeader}>
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.base,
   },
   sectionTitle: {
-    ...Typography.titleSm,
+    ...Typography.titleMd,
     fontWeight: '700',
     color: Colors.ink,
     marginTop: Spacing.base,
