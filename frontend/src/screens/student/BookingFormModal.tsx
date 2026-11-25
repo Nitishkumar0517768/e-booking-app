@@ -40,8 +40,6 @@ export const BookingFormModal: React.FC<BookingFormModalProps> = ({
   onClose,
   onBookingSuccess,
 }) => {
-  if (!resource) return null;
-
   // Date Offset: 1 = Tomorrow, 2 = Day After, 3 = +3 Days
   const [dayOffset, setDayOffset] = useState<number>(1);
   const [selectedSlotId, setSelectedSlotId] = useState<string>('morning');
@@ -79,6 +77,7 @@ export const BookingFormModal: React.FC<BookingFormModalProps> = ({
   }, [visible, dayOffset, selectedSlotId, resource?._id]);
 
   const checkLiveAvailability = async () => {
+    if (!resource) return;
     try {
       setCheckingAvailability(true);
       setError(null);
@@ -120,6 +119,8 @@ export const BookingFormModal: React.FC<BookingFormModalProps> = ({
       return;
     }
 
+    if (!resource) return;
+
     setError(null);
     setSubmitting(true);
     try {
@@ -139,6 +140,10 @@ export const BookingFormModal: React.FC<BookingFormModalProps> = ({
       setSubmitting(false);
     }
   };
+
+  if (!resource) {
+    return null;
+  }
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>

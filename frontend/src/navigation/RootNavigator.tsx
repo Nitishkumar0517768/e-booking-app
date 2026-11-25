@@ -316,27 +316,31 @@ export const RootNavigator: React.FC = () => {
       )}
 
       {/* Sub-Screen / Modal: Booking Form */}
-      <BookingFormModal
-        visible={!!bookingFormResource}
-        resource={bookingFormResource}
-        onClose={() => setBookingFormResource(null)}
-        onBookingSuccess={(booking) => {
-          setBookingFormResource(null);
-          setActiveResource(null);
-          setStudentTab('bookings');
-          setActiveBooking(booking);
-        }}
-      />
+      {bookingFormResource && (
+        <BookingFormModal
+          visible={!!bookingFormResource}
+          resource={bookingFormResource}
+          onClose={() => setBookingFormResource(null)}
+          onBookingSuccess={(booking) => {
+            setBookingFormResource(null);
+            setActiveResource(null);
+            setStudentTab('bookings');
+            setActiveBooking(booking);
+          }}
+        />
+      )}
 
       {/* Sub-Screen / Modal: Booking Detail */}
-      <BookingDetailModal
-        visible={!!activeBooking}
-        booking={activeBooking}
-        onClose={() => setActiveBooking(null)}
-        onBookingCancelled={() => {
-          setActiveBooking(null);
-        }}
-      />
+      {activeBooking && (
+        <BookingDetailModal
+          visible={!!activeBooking}
+          booking={activeBooking}
+          onClose={() => setActiveBooking(null)}
+          onBookingCancelled={() => {
+            setActiveBooking(null);
+          }}
+        />
+      )}
     </View>
   );
 };

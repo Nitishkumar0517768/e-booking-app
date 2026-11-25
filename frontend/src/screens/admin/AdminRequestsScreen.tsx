@@ -185,9 +185,9 @@ export const AdminRequestsScreen: React.FC<AdminRequestsScreenProps> = ({
       <View style={styles.header}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Pending Requests</Text>
-          <Text style={styles.subtitle}>
+          {/* <Text style={styles.subtitle}>
             {requests.length} student booking request(s) awaiting approval
-          </Text>
+          </Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}
