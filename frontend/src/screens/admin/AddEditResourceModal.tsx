@@ -88,28 +88,27 @@ export const AddEditResourceModal: React.FC<AddEditResourceModalProps> = ({
     setError(null);
   }, [resource, visible]);
 
-  // Cloudinary Direct Image Capture / Picker
+  // Direct Image Capture / Picker without popups
   const handlePickImage = async (useCamera: boolean) => {
     try {
       setError(null);
       if (useCamera) {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Camera Permission', 'Camera access is required to take photos of resources.');
+          setError('Camera permission is required to take photos of resources.');
           return;
         }
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert('Photo Permission', 'Media library access is required to select photos.');
+          setError('Media library permission is required to select photos.');
           return;
         }
       }
 
       const options: ImagePicker.ImagePickerOptions = {
         mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false, // Directly use taken/picked photo without crop/edit popup
         quality: 0.7,
         base64: true,
       };
@@ -118,15 +117,22 @@ export const AddEditResourceModal: React.FC<AddEditResourceModalProps> = ({
         ? await ImagePicker.launchCameraAsync(options)
         : await ImagePicker.launchImageLibraryAsync(options);
 
-      if (!result.canceled && result.assets && result.assets[0].base64) {
-        setUploadingImage(true);
-        const base64DataUri = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        
-        // Upload to Cloudinary via backend
-        const uploadRes = await resourceService.uploadImage(base64DataUri);
-        if (uploadRes.data?.imageUrl) {
-          setImageUrl(uploadRes.data.imageUrl);
-          Alert.alert('Upload Successful', 'Image uploaded directly to Cloudinary!');
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        // Instantly display preview of selected/captured image
+        if (asset.uri) {
+          setImageUrl(asset.uri);
+        }
+
+        if (asset.base64) {
+          setUploadingImage(true);
+          const base64DataUri = `data:image/jpeg;base64,${asset.base64}`;
+          
+          // Directly upload to Cloudinary via backend without popups
+          const uploadRes = await resourceService.uploadImage(base64DataUri);
+          if (uploadRes.data?.imageUrl) {
+            setImageUrl(uploadRes.data.imageUrl);
+          }
         }
       }
     } catch (err: any) {
@@ -213,9 +219,17 @@ export const AddEditResourceModal: React.FC<AddEditResourceModalProps> = ({
               {imageUrl ? (
                 <View style={styles.previewContainer}>
                   <Image source={{ uri: imageUrl }} style={styles.imagePreview} resizeMode="cover" />
-                  <TouchableOpacity onPress={() => setImageUrl('')} style={styles.removeImageBtn}>
-                    <Ionicons name="close-circle" size={22} color={Colors.semanticDown} />
-                  </TouchableOpacity>
+                  {uploadingImage && (
+                    <View style={styles.uploadingOverlay}>
+                      <ActivityIndicator size="small" color="#ffffff" />
+                      <Text style={styles.uploadingOverlayText}>Uploading to Cloudinary...</Text>
+                    </View>
+                  )}
+                  {!uploadingImage && (
+                    <TouchableOpacity onPress={() => setImageUrl('')} style={styles.removeImageBtn}>
+                      <Ionicons name="close-circle" size={22} color={Colors.semanticDown} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ) : (
                 <View style={styles.noPhotoPlaceholder}>
@@ -224,31 +238,26 @@ export const AddEditResourceModal: React.FC<AddEditResourceModalProps> = ({
                 </View>
               )}
 
-              {uploadingImage ? (
-                <View style={styles.uploadingBox}>
-                  <ActivityIndicator size="small" color={Colors.primary} />
-                  <Text style={styles.uploadingText}>Uploading to Cloudinary...</Text>
-                </View>
-              ) : (
-                <View style={styles.imageButtonsRow}>
-                  <Button
-                    title="Take Photo"
-                    onPress={() => handlePickImage(true)}
-                    variant="primary"
-                    size="sm"
-                    icon={<Ionicons name="camera" size={16} color="#ffffff" />}
-                    style={{ flex: 1 }}
-                  />
-                  <Button
-                    title="Choose Gallery"
-                    onPress={() => handlePickImage(false)}
-                    variant="outline"
-                    size="sm"
-                    icon={<Ionicons name="images-outline" size={16} color={Colors.ink} />}
-                    style={{ flex: 1 }}
-                  />
-                </View>
-              )}
+              <View style={styles.imageButtonsRow}>
+                <Button
+                  title={uploadingImage ? 'Uploading...' : 'Take Photo'}
+                  onPress={() => handlePickImage(true)}
+                  variant="primary"
+                  size="sm"
+                  disabled={uploadingImage}
+                  icon={<Ionicons name="camera" size={16} color="#ffffff" />}
+                  style={{ flex: 1 }}
+                />
+                <Button
+                  title="Choose Gallery"
+                  onPress={() => handlePickImage(false)}
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingImage}
+                  icon={<Ionicons name="images-outline" size={16} color={Colors.ink} />}
+                  style={{ flex: 1 }}
+                />
+              </View>
             </View>
 
             <Input
@@ -441,6 +450,18 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.muted,
     marginTop: 4,
+  },
+  uploadingOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  uploadingOverlayText: {
+    ...Typography.caption,
+    color: '#ffffff',
+    fontWeight: '600',
   },
   uploadingBox: {
     flexDirection: 'row',
