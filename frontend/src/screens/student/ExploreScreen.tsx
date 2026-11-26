@@ -129,7 +129,7 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
       <View style={styles.header}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Explore Resources</Text>
-          <Text style={styles.subtitle}>Discover equipment and facilities for your academic work</Text>
+          {/* <Text style={styles.subtitle}>Discover equipment and facilities for your academic work</Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Student'}
