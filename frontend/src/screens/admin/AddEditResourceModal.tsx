@@ -95,13 +95,17 @@ export const AddEditResourceModal: React.FC<AddEditResourceModalProps> = ({
       if (useCamera) {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          setError('Camera permission is required to take photos of resources.');
+          const msg = 'Camera permission is required to take photos of resources.';
+          setError(msg);
+          Alert.alert('Permission Required', msg);
           return;
         }
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          setError('Media library permission is required to select photos.');
+          const msg = 'Media library permission is required to select photos.';
+          setError(msg);
+          Alert.alert('Permission Required', msg);
           return;
         }
       }
@@ -137,7 +141,10 @@ export const AddEditResourceModal: React.FC<AddEditResourceModalProps> = ({
       }
     } catch (err: any) {
       console.warn('Image picker error:', err);
-      setError(err.message || 'Image upload failed. You can paste an image URL directly.');
+      const errMsg = err.message || 'Image upload failed. You can paste an image URL directly.';
+      setError(errMsg);
+      // Only show popup when upload fails
+      Alert.alert('Upload Failed', errMsg);
     } finally {
       setUploadingImage(false);
     }
