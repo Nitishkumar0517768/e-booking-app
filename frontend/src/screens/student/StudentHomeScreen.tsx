@@ -17,7 +17,6 @@ import { bookingService, Booking } from '../../services/bookingService';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
-import { Button } from '../../components/common/Button';
 import { ProfileAvatar } from '../../components/common/ProfileAvatar';
 
 interface StudentHomeScreenProps {
@@ -50,8 +49,8 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
 
   const loadHomeData = async () => {
     try {
-      // 1. Fetch available resources
-      const resData = await resourceService.getResources({ limit: 6, status: 'available' });
+      // 1. Fetch available resources (even count for 2-column grid)
+      const resData = await resourceService.getResources({ limit: 10, status: 'available' });
       setFeaturedResources(resData.data.resources || []);
 
       // 2. Fetch student's upcoming booking
@@ -190,45 +189,59 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
         {loading ? (
           <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: 24 }} />
         ) : (
-          <View style={styles.resourceList}>
-            {featuredResources.map((item) => (
-              <Card
-                key={item._id}
-                onPress={() => onSelectResource(item)}
-                style={styles.resourceCard}>
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  style={styles.resourceImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.resourceContent}>
-                  <View style={styles.resourceMetaRow}>
-                    <Text style={styles.resourceCategory}>{item.category.toUpperCase()}</Text>
-                    <Badge status={item.operationalStatus} size="sm" />
+          <View style={styles.resourceGrid}>
+            {featuredResources.map((item) => {
+              const avail = Math.min(
+                Math.max(0, item.availableQuantity ?? item.totalQuantity),
+                item.totalQuantity
+              );
+              const isAvailable = avail > 0 && item.operationalStatus === 'available';
+
+              return (
+                <TouchableOpacity
+                  key={item._id}
+                  activeOpacity={0.85}
+                  onPress={() => onSelectResource(item)}
+                  style={styles.gridCard}>
+                  <View style={styles.gridImageContainer}>
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={styles.gridImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.statusDotWrapper}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: isAvailable ? Colors.semanticUp : Colors.semanticDown },
+                        ]}
+                      />
+                    </View>
                   </View>
-                  <Text style={styles.resourceName} numberOfLines={2}>
-                    {item.name}
-                  </Text>
-                  <View style={styles.resourceFooter}>
-                    <View style={styles.locationContainer}>
-                      <Ionicons name="location-outline" size={14} color={Colors.body} />
-                      <Text style={styles.locationText} numberOfLines={1}>
-                        {item.location}
+
+                  <View style={styles.gridContent}>
+                    <Text style={styles.gridName} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <View style={styles.availabilityRow}>
+                      <Ionicons
+                        name={isAvailable ? 'checkmark-circle' : 'close-circle'}
+                        size={13}
+                        color={isAvailable ? Colors.semanticUp : Colors.semanticDown}
+                      />
+                      <Text
+                        style={[
+                          styles.availabilityText,
+                          { color: isAvailable ? Colors.semanticUp : Colors.semanticDown },
+                        ]}
+                        numberOfLines={1}>
+                        {isAvailable ? `${avail} Available` : 'Reserved'}
                       </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.quantityText,
-                        Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0 ? { color: Colors.semanticDown } : undefined,
-                      ]}>
-                      {Math.min(item.availableQuantity ?? item.totalQuantity, item.totalQuantity) === 0
-                        ? 'Reserved'
-                        : `${Math.min(Math.max(0, item.availableQuantity ?? item.totalQuantity), item.totalQuantity)} / ${item.totalQuantity} left`}
-                    </Text>
                   </View>
-                </View>
-              </Card>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -381,61 +394,75 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.body,
   },
-  resourceList: {
-    gap: Spacing.xs,
-  },
-  resourceCard: {
-    padding: 0,
-    overflow: 'hidden',
+  resourceGrid: {
     flexDirection: 'row',
-    height: 110,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: Spacing.sm,
   },
-  resourceImage: {
-    width: 110,
-    height: '100%',
+  gridCard: {
+    width: '48.5%',
+    backgroundColor: Colors.surfaceCard,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.hairlineSoft,
+    overflow: 'hidden',
+    shadowColor: Colors.ink,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: Spacing.xs,
+  },
+  gridImageContainer: {
+    width: '100%',
+    height: 124,
     backgroundColor: Colors.surfaceSoft,
+    position: 'relative',
   },
-  resourceContent: {
-    flex: 1,
+  gridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  statusDotWrapper: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderRadius: Radius.full,
+    padding: 5,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  gridContent: {
     padding: Spacing.sm,
     justifyContent: 'space-between',
+    minHeight: 68,
   },
-  resourceMetaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  resourceCategory: {
-    ...Typography.caption,
-    fontSize: 10,
-    color: Colors.muted,
+  gridName: {
+    ...Typography.bodyMd,
     fontWeight: '700',
-  },
-  resourceName: {
-    ...Typography.titleSm,
     color: Colors.ink,
-    marginTop: 2,
+    lineHeight: 18,
+    marginBottom: 6,
   },
-  resourceFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  locationContainer: {
+  availabilityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    flex: 1,
   },
-  locationText: {
+  availabilityText: {
     ...Typography.caption,
-    color: Colors.body,
-    fontSize: 11,
-  },
-  quantityText: {
-    ...Typography.caption,
-    fontWeight: '700',
-    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 12,
   },
 });
 
