@@ -45,17 +45,8 @@ export const RootNavigator: React.FC = () => {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 8);
 
-  // Initial App Startup Splash Screen
+  // Initial App Startup Splash Screen (1 second)
   const [showSplash, setShowSplash] = useState(true);
-  const [enterHomeScreenSplash, setEnterHomeScreenSplash] = useState(false);
-  const prevAuth = React.useRef(isAuthenticated);
-
-  React.useEffect(() => {
-    if (!prevAuth.current && isAuthenticated) {
-      setEnterHomeScreenSplash(true);
-    }
-    prevAuth.current = isAuthenticated;
-  }, [isAuthenticated]);
 
   // Auth Flow state
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -72,14 +63,14 @@ export const RootNavigator: React.FC = () => {
   const [addEditModalVisible, setAddEditModalVisible] = useState(false);
   const [resourceToEdit, setResourceToEdit] = useState<Resource | null>(null);
 
-  // 1. Initial Animated Splash Screen on App Launch (1 second screen)
-  if (showSplash || isLoading) {
+  // 1. Initial 1-second splash screen on app launch
+  if (showSplash) {
     return <AppSplashScreen onFinish={() => setShowSplash(false)} durationMs={1000} />;
   }
 
-  // 2. 1-second transition splash screen when entering home screen after login
-  if (enterHomeScreenSplash) {
-    return <AppSplashScreen onFinish={() => setEnterHomeScreenSplash(false)} durationMs={1000} />;
+  // 2. While verifying stored auth session, show splash screen
+  if (isLoading) {
+    return <AppSplashScreen durationMs={3000} />;
   }
 
   // 2. Unauthenticated Flow
