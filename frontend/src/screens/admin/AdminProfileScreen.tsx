@@ -112,6 +112,12 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
+  },
   backBtn: {
     marginRight: Spacing.sm,
     padding: 4,
@@ -196,6 +202,26 @@ const styles = StyleSheet.create({
   },
   logoutBtn: {
     marginTop: Spacing.sm,
+  },
+  brandFooter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: Colors.hairlineSoft,
+    gap: 4,
+  },
+  brandFooterTagline: {
+    ...Typography.caption,
+    color: Colors.body,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  brandFooterVersion: {
+    ...Typography.caption,
+    color: Colors.muted,
+    fontSize: 11,
   },
 });
 

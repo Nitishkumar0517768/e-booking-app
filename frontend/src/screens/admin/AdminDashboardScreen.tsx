@@ -67,7 +67,7 @@ export const AdminDashboardScreen: React.FC<AdminDashboardScreenProps> = ({
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.topBar}>
         <View>
-          {/* <Text style={styles.greetingText}>Administrator Console</Text> */}
+          <Text style={styles.greetingText}>Admin Console</Text>
           <Text style={styles.adminNameText}>{user?.name || 'Admin'}</Text>
         </View>
         <ProfileAvatar
@@ -222,6 +222,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+  },
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   greetingText: {
     ...Typography.caption,

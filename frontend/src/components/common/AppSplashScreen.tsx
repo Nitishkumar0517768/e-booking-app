@@ -10,33 +10,33 @@ interface AppSplashScreenProps {
 
 export const AppSplashScreen: React.FC<AppSplashScreenProps> = ({
   onFinish,
-  durationMs = 1800,
+  durationMs = 1000,
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
-    // 1. Fade & Scale in
+    // 1. Fast Fade & Scale in
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 600,
+        duration: 300,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
-        friction: 6,
-        tension: 40,
+        friction: 7,
+        tension: 50,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // 2. Trigger onFinish callback after durationMs
+    // 2. Trigger onFinish callback after durationMs (1 second total)
     const timer = setTimeout(() => {
       if (onFinish) {
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 350,
+          duration: 250,
           useNativeDriver: true,
         }).start(() => {
           onFinish();
@@ -50,7 +50,7 @@ export const AppSplashScreen: React.FC<AppSplashScreenProps> = ({
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <Animated.View style={[styles.content, { transform: [{ scale: scaleAnim }] }]}>
-        <EBookingLogo size={80} style={styles.logo} />
+        <EBookingLogo size={90} variant="full" style={styles.logo} />
         <Text style={styles.appName}>e-Booking</Text>
         <Text style={styles.tagline}>College Equipment & Resource Management</Text>
         <View style={styles.institutionPill}>

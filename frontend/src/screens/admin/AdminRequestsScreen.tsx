@@ -185,9 +185,6 @@ export const AdminRequestsScreen: React.FC<AdminRequestsScreenProps> = ({
       <View style={styles.header}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Pending Requests</Text>
-          {/* <Text style={styles.subtitle}>
-            {requests.length} student booking request(s) awaiting approval
-          </Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}
@@ -278,6 +275,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
   },
   title: {
     ...Typography.titleLg,

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
+import { EBookingLogo } from '../../components/common/EBookingLogo';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 
@@ -91,9 +92,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onNavigateToLogi
             keyboardDismissMode="interactive"
             showsVerticalScrollIndicator={false}>
             
-            <TouchableOpacity onPress={onNavigateToLogin} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={Colors.ink} />
-            </TouchableOpacity>
+            <View style={styles.topNavRow}>
+              <TouchableOpacity onPress={onNavigateToLogin} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={24} color={Colors.ink} />
+              </TouchableOpacity>
+              <EBookingLogo size={40} />
+            </View>
 
             <View style={styles.header}>
               <Text style={styles.title}>Student Registration</Text>
@@ -242,6 +246,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.base,
     paddingBottom: 180, // Generous padding so inputs never get covered by keyboard
+  },
+  topNavRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.base,
   },
   backButton: {
     alignSelf: 'flex-start',

@@ -129,7 +129,6 @@ export const ExploreScreen: React.FC<ExploreScreenProps> = ({
       <View style={styles.header}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Explore Resources</Text>
-          {/* <Text style={styles.subtitle}>Discover equipment and facilities for your academic work</Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Student'}
@@ -220,6 +219,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
   },
   title: {
     ...Typography.titleLg,

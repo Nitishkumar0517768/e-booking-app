@@ -239,9 +239,6 @@ export const AdminResourcesScreen: React.FC<AdminResourcesScreenProps> = ({
       <View style={styles.topBar}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Resource Inventory</Text>
-          {/* <Text style={styles.subtitle} numberOfLines={1}>
-            Manage campus equipment and room facilities
-          </Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}
@@ -332,6 +329,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+  },
+  topBarTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
   },
   title: {
     ...Typography.titleLg,

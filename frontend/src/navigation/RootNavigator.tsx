@@ -47,6 +47,15 @@ export const RootNavigator: React.FC = () => {
 
   // Initial App Startup Splash Screen
   const [showSplash, setShowSplash] = useState(true);
+  const [enterHomeScreenSplash, setEnterHomeScreenSplash] = useState(false);
+  const prevAuth = React.useRef(isAuthenticated);
+
+  React.useEffect(() => {
+    if (!prevAuth.current && isAuthenticated) {
+      setEnterHomeScreenSplash(true);
+    }
+    prevAuth.current = isAuthenticated;
+  }, [isAuthenticated]);
 
   // Auth Flow state
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -63,9 +72,14 @@ export const RootNavigator: React.FC = () => {
   const [addEditModalVisible, setAddEditModalVisible] = useState(false);
   const [resourceToEdit, setResourceToEdit] = useState<Resource | null>(null);
 
-  // 1. Initial Animated Splash Screen on App Launch
+  // 1. Initial Animated Splash Screen on App Launch (1 second screen)
   if (showSplash || isLoading) {
-    return <AppSplashScreen onFinish={() => setShowSplash(false)} durationMs={1800} />;
+    return <AppSplashScreen onFinish={() => setShowSplash(false)} durationMs={1000} />;
+  }
+
+  // 2. 1-second transition splash screen when entering home screen after login
+  if (enterHomeScreenSplash) {
+    return <AppSplashScreen onFinish={() => setEnterHomeScreenSplash(false)} durationMs={1000} />;
   }
 
   // 2. Unauthenticated Flow

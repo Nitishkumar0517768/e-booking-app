@@ -29,10 +29,10 @@ interface StudentHomeScreenProps {
 }
 
 const CATEGORIES = [
-  { id: 'Electronics', name: 'Electronics', icon: 'laptop-outline' },
-  { id: 'Laboratory Equipment', name: 'Lab Gear', icon: 'flask-outline' },
-  { id: 'Sports Equipment', name: 'Sports', icon: 'football-outline' },
-  { id: 'Rooms and Facilities', name: 'Rooms & Halls', icon: 'business-outline' },
+  { id: 'Electronics', name: 'Electronics', icon: 'laptop-outline', color: '#0052ff', bg: '#eff6ff' },
+  { id: 'Laboratory Equipment', name: 'Lab Gear', icon: 'flask-outline', color: '#05b169', bg: '#ecfdf5' },
+  { id: 'Sports Equipment', name: 'Sports', icon: 'football-outline', color: '#564bcd', bg: '#f5f3ff' },
+  { id: 'Rooms and Facilities', name: 'Rooms & Halls', icon: 'business-outline', color: '#05b6ea', bg: '#f0f9ff' },
 ];
 
 export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
@@ -134,8 +134,8 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
               activeOpacity={0.8}
               onPress={() => onNavigateToExplore(cat.id)}
               style={styles.categoryCard}>
-              <View style={styles.categoryIconCircle}>
-                <Ionicons name={cat.icon as any} size={22} color={Colors.primary} />
+              <View style={[styles.categoryIconCircle, { backgroundColor: cat.bg }]}>
+                <Ionicons name={cat.icon as any} size={22} color={cat.color} />
               </View>
               <Text style={styles.categoryName} numberOfLines={1}>
                 {cat.name}
@@ -248,6 +248,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+  },
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   greetingText: {
     ...Typography.caption,

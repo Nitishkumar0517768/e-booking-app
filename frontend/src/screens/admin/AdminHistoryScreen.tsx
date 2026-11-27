@@ -195,7 +195,6 @@ export const AdminHistoryScreen: React.FC<AdminHistoryScreenProps> = ({
       <View style={styles.header}>
         <View style={{ flex: 1, marginRight: Spacing.sm }}>
           <Text style={styles.title}>Booking Operations & History</Text>
-          {/* <Text style={styles.subtitle}>Track reservations, issue equipment, and verify returns</Text> */}
         </View>
         <ProfileAvatar
           name={user?.name || 'Admin'}
@@ -366,6 +365,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+  },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    flex: 1,
   },
   title: {
     ...Typography.titleLg,

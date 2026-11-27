@@ -22,6 +22,16 @@ export const Colors = {
   semanticDown: '#cf202f',
   accentYellow: '#f4b000',
 
+  // Logo Harmonized Color Palette
+  brand: {
+    blue: '#0052ff', // Electric blue (booking checkmark)
+    cyan: '#05b6ea', // Vibrant cyan (calendar top)
+    purple: '#564bcd', // Rich purple (sports basketball)
+    teal: '#05b169', // Emerald/teal (lab gear)
+    navy: '#0a0b0d', // Deep ink navy text
+    cardBg: '#ffffff',
+  },
+
   light: {
     primary: '#0052ff',
     text: '#0a0b0d',
